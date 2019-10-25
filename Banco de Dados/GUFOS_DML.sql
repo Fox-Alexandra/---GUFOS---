@@ -1,4 +1,4 @@
-USE GUFOOS;
+USE Gufos;
 
 INSERT INTO Tipo_usuario	(Titulo)
 VALUES						('Administrador'),

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Gufos.Repositorio;
 using GUFOS.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,28 +10,26 @@ namespace GUFOS.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Produces("application/json")]
+
     public class CategoriaController : ControllerBase
     {
-        GufosContext context = new GufosContext(); //GUFOScontext é renspopnsavel pela conexao como banco
+        CategoriaRepositorio repositorio = new CategoriaRepositorio(); //Instancia a classe CategoriaRepositorio
 
         [HttpGet]
-
         public async Task<ActionResult<List<Categoria>>> Get()
         {
-            List<Categoria> listaDeCategoria = await context.Categoria.ToListAsync();
-
-            if(listaDeCategoria == null)
+            try{
+                return await repositorio.Get();
+            }catch(System.Exception)
             {
-                return NotFound();
+                throw;
             }
-            return listaDeCategoria;
         }
 
         [HttpGet("{id}")]
-
         public async Task<ActionResult<Categoria>> Get(int id)
         {
-            Categoria categoriaRetornada = await context.Categoria.FindAsync(id); //caso nao encontre o id
+            Categoria categoriaRetornada = await repositorio.Get(id);
             if (categoriaRetornada == null)
             {
                 return NotFound();
@@ -38,46 +37,61 @@ namespace GUFOS.Controllers
             return categoriaRetornada;
         }
 
+
+        /// <summary>
+        /// Insere uma categoria
+        /// </summary>
+        /// <param name="categoria"></param>
+        /// <returns>Retorna a categoria cadastrada</returns>
         [HttpPost]
-        public async Task<ActionResult<Categoria /*define o tipo de retorno*/>> Post(Categoria categoria) 
+        public async Task<ActionResult<Categoria>> Post(Categoria categoria)
         {
-            try //usa para tentar algo/retornar erros
+            try //usado para tentar algo/retornar erros
+            //Tente o seguinte:
             {
-                await context.Categoria.AddAsync(categoria); 
-                await context.SaveChangesAsync();
+                return await repositorio.Post(categoria); //Retorne o repositorio do tipo post que tenha a variavel cateri
             }
-            catch (System.Exception)
+            catch (System.Exception) //Caso de erro, apareça a seguinte mensagem
             {
-                    
+                
                 throw;
             }
-                
-            return categoria;
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Put(int id, Categoria categoria)
+        public async Task<ActionResult<Categoria>> Put(int id, Categoria categoria)
         {
-            Categoria categoriaRetornada = await context.Categoria.FindAsync(id);
-            if(categoriaRetornada == null){
-                return NotFound();
-            }
-            categoriaRetornada.Titulo = categoria.Titulo;
-            context.Categoria.Update(categoriaRetornada);
-            await context.SaveChangesAsync();
+            if(id != categoria.CategoriaId){
 
-            return NoContent();
+                return BadRequest();
+            }
+            try
+            {
+                await repositorio.Put(categoria);
+            }
+            catch (DbUpdateConcurrencyException) //Caso haja uma excessao e o update nao ocorra faça:
+            {
+                var categoriaValida = await repositorio.Get(id);
+                if(categoriaValida == null){
+                    return NotFound();
+                }else{
+
+                    throw;
+                }
+            }
+            return categoria;
         }
-
-        [HttpDelete ("{id}")]
-        public async Task<ActionResult<Categoria>> Delete(int id){
-            Categoria categoriaRetornada = await context.Categoria.FindAsync(id);
-            if(categoriaRetornada == null){
+        
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Categoria>> Delete(int id)
+        {
+            Categoria categoriaRetornada = await repositorio.Get(id);
+            if (categoriaRetornada == null)
+            {
                 return NotFound();
             }
-            context.Categoria.Remove(categoriaRetornada);
-            await context.SaveChangesAsync();
 
+            await repositorio.Delete(categoriaRetornada);
             return categoriaRetornada;
         }
     }

@@ -29,5 +29,6 @@ namespace GUFOS.Models
 
         [InverseProperty("Localizacao")]
         public virtual ICollection<Evento> Evento { get; set; }
+       
     }
 }

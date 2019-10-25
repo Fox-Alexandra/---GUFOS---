@@ -26,7 +26,7 @@ namespace GUFOS.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Server=.\\SQLEXPRESS;Database=Gufoos;Integrated Security=true;");
+                optionsBuilder.UseSqlServer("Server=.\\SQLEXPRESS;Database=Gufos;Integrated Security=true;");
             }
         }
 
